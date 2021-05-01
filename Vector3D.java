@@ -1,9 +1,9 @@
 public class Vector3D {
 
-    public float x;
-    public float y;
-    public float z;
-    public float w;
+    private float x;
+    private float y;
+    private float z;
+    private float w;
 
     public Vector3D() {
     }

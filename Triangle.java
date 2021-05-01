@@ -1,10 +1,10 @@
 import java.util.ArrayList;
 
 public class Triangle implements Comparable<Triangle> {
-    public Vector3D p1;
-    public Vector3D p2;
-    public Vector3D p3;
-    public int color = 255;
+    private Vector3D p1;
+    private Vector3D p2;
+    private Vector3D p3;
+    private int color = 255;
 
     public ArrayList<Vector3D> trianglePoints = new ArrayList<>();
 

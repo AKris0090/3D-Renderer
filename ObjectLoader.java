@@ -14,9 +14,12 @@ public class ObjectLoader {
         if (type.equals("fox")) {
             myObj = new File("low-poly-fox-by-pixelmannen.obj");
             scaleFactor = 3;
-        } else {
+        } else if (type.equals("sphere")) {
             myObj = new File("sphere.obj");
-            scaleFactor = 1;
+            scaleFactor = 15;
+        } else {
+            myObj = new File("teapot.obj");
+            scaleFactor = 15;
         }
         try {
             Scanner myReader = new Scanner(myObj);

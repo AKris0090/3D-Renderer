@@ -25,7 +25,7 @@ public class Main extends PApplet {
     float aspectRatio;
     QueasyCam cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
-    String obj = "cube";
+    String obj = "fox";
     Object o = new Object();
 
     public void settings() {
@@ -91,8 +91,6 @@ public class Main extends PApplet {
         ArrayList<Triangle> rotatedTriangles = new ArrayList<>();
         ArrayList<Triangle> projectedTriangles;
         ArrayList<Triangle> coloredNormalTriangles;
-        ArrayList<Triangle> rotatedNewTriangles;
-//        translate((float) (width / 2), (float) (height / 2));
 
         background(color(0, 0, 0));
 
@@ -160,7 +158,7 @@ public class Main extends PApplet {
         for (int i = 0; i < rotatedTriangles.size(); i++) {
             Triangle t = rotatedTriangles.get(i);
             Vector3D normCam = (new Vector3D(-cam1.position.x, -cam1.position.y, cam1.position.z));
-            Vector3D cameraRay = vm.sub(t.p1, normCam);
+            Vector3D cameraRay = vm.sub(t.getP1(), normCam);
 
             float nx = normals.get(i).getX();
             float ny = normals.get(i).getY();
@@ -260,17 +258,17 @@ public class Main extends PApplet {
     private void drawTriangles(ArrayList<Triangle> trianglesToDraw) {
         for (Triangle t : trianglesToDraw) {
             //SHADED
-//            stroke(t.getColor());
-//            fill(t.getColor());
-//            line(t.p1.x, t.p1.y, t.p1.z, t.p2.x, t.p2.y, t.p2.z);
-//            line(t.p1.x, t.p1.y, t.p1.z, t.p3.x, t.p3.y, t.p3.z);
-//            line(t.p3.x, t.p3.y, t.p3.z, t.p2.x, t.p2.y, t.p2.z);
+            stroke(t.getColor());
+            fill(t.getColor());
+            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
+            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP3().getX(), t.getP3().getY(), t.getP3().getZ());
+            line(t.getP3().getX(), t.getP3().getY(), t.getP3().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
 
             //WIREFRAME
-            stroke(255);
-            line(t.p1.x, t.p1.y, t.p1.z, t.p2.x, t.p2.y, t.p2.z);
-            line(t.p1.x, t.p1.y, t.p1.z, t.p3.x, t.p3.y, t.p3.z);
-            line(t.p3.x, t.p3.y, t.p3.z, t.p2.x, t.p2.y, t.p2.z);
+//            stroke(255);
+//            line(t.getP1().x, t.getP1().y, t.getP1().z, t.getP2().x, t.getP2().y, t.getP2().z);
+//            line(t.getP1().x, t.getP1().y, t.getP1().z, t.getP3().x, t.getP3().y, t.getP3().z);
+//            line(t.getP3().x, t.getP3().y, t.getP3().z, t.getP2().x, t.getP2().y, t.getP2().z);
         }
     }
 
