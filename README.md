@@ -1,1 +1,1 @@
-# Make sure you have QueasyCam and Processing
+# Make sure you have Processing
