@@ -16,7 +16,7 @@ public class ObjectLoader {
             scaleFactor = 3;
         } else if (type.equals("sphere")) {
             myObj = new File("sphere.obj");
-            scaleFactor = 15;
+            scaleFactor = 50;
         } else {
             myObj = new File("teapot.obj");
             scaleFactor = 15;

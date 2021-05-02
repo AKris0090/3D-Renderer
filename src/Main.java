@@ -23,9 +23,10 @@ public class Main extends PApplet {
     int ySize = 600;
     float FOV = 270f;
     float aspectRatio;
-    QueasyCam cam1;
+//    QueasyCam cam1;
+    Vector3D cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
-    String obj = "fox";
+    String obj = "sphere";
     Object o = new Object();
 
     public void settings() {
@@ -91,6 +92,7 @@ public class Main extends PApplet {
         ArrayList<Triangle> rotatedTriangles = new ArrayList<>();
         ArrayList<Triangle> projectedTriangles;
         ArrayList<Triangle> coloredNormalTriangles;
+        translate((int) (width / 2.0), (int) (height / 2.0));
 
         background(color(0, 0, 0));
 
@@ -148,7 +150,7 @@ public class Main extends PApplet {
 
             //DRAWING THE TRIANGLES
             drawTriangles(projectedTriangles);
-//            angle += 0.02;
+            angle += 0.02;
         }
         frame++;
     }
@@ -157,7 +159,7 @@ public class Main extends PApplet {
         ArrayList<Triangle> normalTriangles = new ArrayList<>();
         for (int i = 0; i < rotatedTriangles.size(); i++) {
             Triangle t = rotatedTriangles.get(i);
-            Vector3D normCam = (new Vector3D(-cam1.position.x, -cam1.position.y, cam1.position.z));
+            Vector3D normCam = (new Vector3D(-cam1.getX(), -cam1.getY(), cam1.getZ()));
             Vector3D cameraRay = vm.sub(t.getP1(), normCam);
 
             float nx = normals.get(i).getX();
@@ -260,9 +262,10 @@ public class Main extends PApplet {
             //SHADED
             stroke(t.getColor());
             fill(t.getColor());
-            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
-            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP3().getX(), t.getP3().getY(), t.getP3().getZ());
-            line(t.getP3().getX(), t.getP3().getY(), t.getP3().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
+//            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
+//            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP3().getX(), t.getP3().getY(), t.getP3().getZ());
+//            line(t.getP3().getX(), t.getP3().getY(), t.getP3().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
+            triangle(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY(), t.getP3().getX(), t.getP3().getY());
 
             //WIREFRAME
 //            stroke(255);
@@ -287,10 +290,11 @@ public class Main extends PApplet {
     public void setup() {
         frameRate(60);
 
-        cam1 = new QueasyCam(this);
-        translate(0, 0, -100000);
-        cam1.sensitivity = (float) 0.5;
-        cam1.speed = (float) 0.5;
+        cam1 = new Vector3D(0, 0, -100000000);
+//        cam1 = new QueasyCam(this);
+//        translate(0, 0, -100000);
+//        cam1.sensitivity = (float) 0.5;
+//        cam1.speed = (float) 0.5;
         perspective(PI / 3, (float) width / height, (float) 0.01, 10000);
     }
 
