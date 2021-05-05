@@ -274,10 +274,11 @@ public class Main extends PApplet {
             triangle(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY(), t.getP3().getX(), t.getP3().getY());
 
 //            WIREFRAME
-//            stroke(255);
-//            line(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY());
-//            line(t.getP1().getX(), t.getP1().getY(), t.getP3().getX(), t.getP3().getY());
-//            line(t.getP3().getX(), t.getP3().getY(), t.getP2().getX(), t.getP2().getY());
+            strokeWeight(1);
+            stroke(255);
+            line(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY());
+            line(t.getP1().getX(), t.getP1().getY(), t.getP3().getX(), t.getP3().getY());
+            line(t.getP3().getX(), t.getP3().getY(), t.getP2().getX(), t.getP2().getY());
         }
     }
 
