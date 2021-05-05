@@ -5,6 +5,7 @@
 #### No camera movement
 
 #### 5/4/2021
+#### control light with i - up, j - left, k - down, l - right
 #### option to have the axis visualization, ctrl + f and axis visualization, comment it out
 #### to cancel rotation, change angle += 0.01 to += 0.0 or comment it out, both work
 #### option to show wireframe, comment out triangle() in drawtriangles method and uncomment the wireframe lines
