@@ -19,8 +19,12 @@ public class ObjectLoader {
             scaleFactor = 50;
         } else {
             myObj = new File("teapot.obj");
-            scaleFactor = 15;
+            scaleFactor = 50;
         }
+        tryLoad(myObj);
+    }
+
+    private void tryLoad(File myObj) {
         try {
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {

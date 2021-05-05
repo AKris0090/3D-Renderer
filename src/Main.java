@@ -1,10 +1,9 @@
 import processing.core.PApplet;
-import queasycam.QueasyCam;
+import processing.event.KeyEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-
 
 public class Main extends PApplet {
     int frame = 0;
@@ -19,14 +18,14 @@ public class Main extends PApplet {
     float ZMultiplier;
     float zNear = 0.1f;
     float zFar = 1000.0f;
-    int xSize = 600;
-    int ySize = 600;
+    int xSize = 800;
+    int ySize = 800;
     float FOV = 270f;
     float aspectRatio;
-//    QueasyCam cam1;
     Vector3D cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
-    String obj = "sphere";
+    //"sphere", "fox", "cube", or "teapot"
+    String obj = "fox";
     Object o = new Object();
 
     public void settings() {
@@ -95,9 +94,9 @@ public class Main extends PApplet {
         translate((int) (width / 2.0), (int) (height / 2.0));
 
         background(color(0, 0, 0));
-
         strokeWeight(2);
-        drawAxisVisualization();
+
+//        drawAxisVisualization();
 
         if (frame != 0) {
 
@@ -126,8 +125,15 @@ public class Main extends PApplet {
                 rotatedTriangles.add(t1);
             }
 
-            //CREATE ALL NORMALS
+            ArrayList<Triangle> trans = new ArrayList<>();
+            float[][] matTrans = m.matTrans(0.0f, 0.0f, 5.0f);
             for (Triangle t : rotatedTriangles) {
+                Triangle newT = new Triangle(m.matrixMultiply4x4(matTrans, t.getP1()), m.matrixMultiply4x4(matTrans, t.getP2()), m.matrixMultiply4x4(matTrans, t.getP3()));
+                trans.add(newT);
+            }
+
+            //CREATE ALL NORMALS
+            for (Triangle t : trans) {
                 normals.add(normal(t));
             }
 
@@ -145,12 +151,14 @@ public class Main extends PApplet {
             //DRAW FROM FURTHEST TRIANGLE UP
             coloredNormalTriangles.sort(Collections.reverseOrder());
 
+//            camTransformedTriangles = turnWithCamera(coloredNormalTriangles, matView);
+
             //PROJECTION
             projectedTriangles = makeProjectionVectors(coloredNormalTriangles);
 
             //DRAWING THE TRIANGLES
             drawTriangles(projectedTriangles);
-            angle += 0.02;
+            angle += 0.01;
         }
         frame++;
     }
@@ -159,7 +167,7 @@ public class Main extends PApplet {
         ArrayList<Triangle> normalTriangles = new ArrayList<>();
         for (int i = 0; i < rotatedTriangles.size(); i++) {
             Triangle t = rotatedTriangles.get(i);
-            Vector3D normCam = (new Vector3D(-cam1.getX(), -cam1.getY(), cam1.getZ()));
+            Vector3D normCam = (new Vector3D(this.cam1.getX(), this.cam1.getY(), this.cam1.getZ()));
             Vector3D cameraRay = vm.sub(t.getP1(), normCam);
 
             float nx = normals.get(i).getX();
@@ -258,20 +266,18 @@ public class Main extends PApplet {
     }
 
     private void drawTriangles(ArrayList<Triangle> trianglesToDraw) {
-        for (Triangle t : trianglesToDraw) {
+        for (int i = trianglesToDraw.size() - 1; i >= 0; i--) {
+            Triangle t = trianglesToDraw.get(i);
             //SHADED
-            stroke(t.getColor());
+            stroke(t.getColor(), 0);
             fill(t.getColor());
-//            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
-//            line(t.getP1().getX(), t.getP1().getY(), t.getP1().getZ(), t.getP3().getX(), t.getP3().getY(), t.getP3().getZ());
-//            line(t.getP3().getX(), t.getP3().getY(), t.getP3().getZ(), t.getP2().getX(), t.getP2().getY(), t.getP2().getZ());
             triangle(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY(), t.getP3().getX(), t.getP3().getY());
 
-            //WIREFRAME
+//            WIREFRAME
 //            stroke(255);
-//            line(t.getP1().x, t.getP1().y, t.getP1().z, t.getP2().x, t.getP2().y, t.getP2().z);
-//            line(t.getP1().x, t.getP1().y, t.getP1().z, t.getP3().x, t.getP3().y, t.getP3().z);
-//            line(t.getP3().x, t.getP3().y, t.getP3().z, t.getP2().x, t.getP2().y, t.getP2().z);
+//            line(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY());
+//            line(t.getP1().getX(), t.getP1().getY(), t.getP3().getX(), t.getP3().getY());
+//            line(t.getP3().getX(), t.getP3().getY(), t.getP2().getX(), t.getP2().getY());
         }
     }
 
@@ -291,11 +297,22 @@ public class Main extends PApplet {
         frameRate(60);
 
         cam1 = new Vector3D(0, 0, -100000000);
-//        cam1 = new QueasyCam(this);
-//        translate(0, 0, -100000);
-//        cam1.sensitivity = (float) 0.5;
-//        cam1.speed = (float) 0.5;
         perspective(PI / 3, (float) width / height, (float) 0.01, 10000);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+        if (key == 'i') {
+            this.lightSource.setY((float) (this.lightSource.getY() + 0.1));
+        } else if (key == 'j') {
+            this.lightSource.setX((float) (this.lightSource.getX() + 0.1));
+        } else if (key == 'k') {
+            this.lightSource.setY((float) (this.lightSource.getY() - 0.1));
+        } else if (key == 'l') {
+            this.lightSource.setX((float) (this.lightSource.getX() - 0.1));
+        } else if (key == 'r') {
+            this.lightSource = new Vector3D(300, -300, 0);
+        }
     }
 
     public static void main(String[] args) {

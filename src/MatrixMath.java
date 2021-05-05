@@ -32,27 +32,15 @@ public class MatrixMath {
         return newVector;
     }
 
-/*    public float[][] makeXRotationMatrix(float angle) {
-        return new float[][]{
-                {1, 0, 0},
-                {0, (float) Math.cos(angle), (float) (0 - Math.sin(angle))},
-                {0, (float) Math.sin(angle), (float) Math.cos(angle)}
-        };
+    public float[][] matTrans(float x, float y, float z) {
+        float[][] matrix = new float[4][4];
+        matrix[0][0] = 1.0f;
+        matrix[1][1] = 1.0f;
+        matrix[2][2] = 1.0f;
+        matrix[3][3] = 1.0f;
+        matrix[3][0] = x;
+        matrix[3][1] = y;
+        matrix[3][2] = z;
+        return matrix;
     }
-
-    public float[][] makeYRotationMatrix(float angle) {
-        return new float[][]{
-                {(float) Math.cos(angle), 0, (float) (0 - Math.sin(angle))},
-                {0, 1, 0},
-                {(float) (Math.sin(angle)), 0, (float) Math.cos(angle)}
-        };
-    }
-
-    public float[][] makeZRotationMatrix(float angle) {
-        return new float[][]{
-                {(float) Math.cos(angle), (float) (Math.sin(angle)), 0},
-                {(float) (0 - Math.sin(angle)), (float) Math.cos(angle), 0},
-                {0, 0, 1},
-        };
-    }*/
 }
