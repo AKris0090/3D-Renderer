@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class MatrixMath {
 
     public Vector3D matrixMultiply4x4(float[][] mat, Vector3D v) {
@@ -42,5 +44,70 @@ public class MatrixMath {
         matrix[3][1] = y;
         matrix[3][2] = z;
         return matrix;
+    }
+
+    public float[][] initProjectionMatrix(float aspectRatio, float fovMultiplier, float ZMultiplier, float zNear) {
+        float[][] projectionMatrix = new float[4][4];
+        for (float[] f : projectionMatrix) {
+            Arrays.fill(f, 0);
+        }
+
+        projectionMatrix[0][0] = (aspectRatio) * (fovMultiplier);
+        projectionMatrix[1][1] = fovMultiplier;
+        projectionMatrix[2][2] = ZMultiplier;
+        projectionMatrix[3][2] = ((0 - zNear) * ZMultiplier);
+        projectionMatrix[2][3] = 1;
+
+        return projectionMatrix;
+    }
+
+    public float[][] initXRotation(float angle) {
+        return new float[][]{
+                {
+                        1,
+                        0,
+                        0
+                }, {
+                0,
+                (float) Math.cos(angle),
+                (float) (0 - Math.sin(angle))
+        }, {
+                0,
+                (float) Math.sin(angle),
+                (float) Math.cos(angle)
+        }
+        };
+    }
+
+    public float[][] initYRotation(float angle) {
+        return new float[][]{
+                {
+                        (float) Math.cos(angle), 0, (float) (0 - Math.sin(angle))
+                }, {
+                0,
+                1,
+                0
+        }, {
+                (float) (Math.sin(angle)),
+                0,
+                (float) Math.cos(angle)
+        }
+        };
+    }
+
+    public float[][] initZRotation(float angle) {
+        return new float[][]{
+                {
+                        (float) Math.cos(angle), (float) (Math.sin(angle)), 0
+                }, {
+                (float) (0 - Math.sin(angle)),
+                (float) Math.cos(angle),
+                0
+        }, {
+                0,
+                0,
+                1
+        },
+        };
     }
 }

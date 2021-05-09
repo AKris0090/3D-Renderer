@@ -14,8 +14,11 @@ public class Vector3D {
         this.z = z;
     }
 
-    public float getNormalLength() {
-        return (float) Math.sqrt((this.getX() * this.getX()) + (this.getY() * this.getY()) + (this.getZ() * this.getZ()));
+    public Vector3D(float x, float y, float z, float w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     public float getX() {
@@ -48,5 +51,9 @@ public class Vector3D {
 
     public void setW(float w) {
         this.w = w;
+    }
+
+    protected Vector3D clone() throws CloneNotSupportedException {
+        return new Vector3D(getX(), getY(), getZ(), getW());
     }
 }
