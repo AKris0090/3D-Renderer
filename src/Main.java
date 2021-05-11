@@ -48,8 +48,8 @@ public class Main extends PApplet {
     Vector3D cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
 
-    //"sphere", "fox", "cube", or "teapot"
-    String obj = "teapot";
+    //"sphere", "fox", "cube", or "teapot", or "gun", or "jeep"
+    String obj = "gun";
 
     public static void main(String[] args) {
         PApplet.main("Main");
@@ -191,7 +191,7 @@ public class Main extends PApplet {
         fill(0, 255, 0);
         textSize(13);
         text("fps: " + frameRate, 5, 15);
-        text("angle multiplier: " + (0 - (angleMultiplier + 0.02f)),5, 30);
+        text("angle multiplier: " + (0 - (angleMultiplier + 0.02f)), 5, 30);
         text("wireframe: " + (wireFrame), 5, 45);
         text("model: " + (model), 5, 60);
         text("axis: " + (axis), 5, 75);
@@ -316,7 +316,7 @@ public class Main extends PApplet {
             Vector3D n = new Vector3D(nx, ny, nz);
 
             //DOT PRODUCT AND CAMERA POSITION CORRECTION
-            if (vm.dotProduct(n, cameraRay) < 0.0f){
+            if (vm.dotProduct(n, cameraRay) < 0.0f) {
                 normalTriangles.add(t);
             }
         }
@@ -504,6 +504,32 @@ public class Main extends PApplet {
                     xAngle -= (Math.atan(((prev.getY() - originY) - (cur.getY() - originY)) / 2.0)) / 50;
                 } else if (cur.getY() < prev.getY()) {
                     xAngle += (Math.atan(((cur.getY() - originY) - (prev.getY() - originY)) / 2.0)) / 50;
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseWheel(MouseEvent event) {
+        int direction = event.getCount();
+        if (direction < 0) {
+            for (int i = 0; i > direction; i--) {
+                this.FOV += 5;
+
+                try {
+                    loadProjectionMatrix();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if (direction > 0) {
+            for (int i = direction; i >= 0; i--) {
+                this.FOV -= 5;
+
+                try {
+                    loadProjectionMatrix();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
             }
         }

@@ -29,6 +29,14 @@ public class ObjectLoader {
                 myObj = new File("teapot.obj");
                 scaleFactor = 50;
                 break;
+            case "gun":
+                myObj = new File("gun.obj");
+                scaleFactor = 3000;
+                break;
+            case "jeep":
+                myObj = new File("jeep.obj");
+                scaleFactor = 150;
+                break;
             default:
                 throw new FileNotFoundException();
         }
