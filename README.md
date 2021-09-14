@@ -2,6 +2,7 @@
 
 #### Run Main + change String obj to "sphere", "cube", "fox", "gun", "jeep", or "teapot"
 #### You know how it goes
+#### Press "c" to choose between models or select a file (MUST CHOOSE .OBJ FILE, other files will not work)
 #### 2D projection based off of a youtube guide by javidx9, implemented in Java using PApplet
 #### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
 
@@ -9,7 +10,6 @@
 #### Download Java 16 (Version is important)
 #### Download JAR file
 #### Run JAR file with Java 16
-#### Press "c" to choose between models or select a file
 
 ## 9/13/2021
 #### - added options to select preloaded models or select file to load
