@@ -3,24 +3,31 @@ import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
+import javax.swing.*;
+
+import java.awt.*;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+//MAIN WINDOW - CHANGE FILENAME IN HERE
 public class Main extends PApplet {
     int originX, originY;
-    MatrixMath m = new MatrixMath();
+    static MatrixMath m = new MatrixMath();
     VectorMath vm = new VectorMath();
-    public static int n = 2;
+    public static int n = 1;
 
     int frame = 0;
-    float xAngle = 0.0f;
-    float yAngle = 0.0f;
-    float zAngle = 0.0f;
+    static float xAngle = 0.0f;
+    static float yAngle = 0.0f;
+    static float zAngle = 0.0f;
     float[][] projectionMatrix;
-    float[][] xRotation;
-    float[][] yRotation;
-    float[][] zRotation;
+    static float[][] xRotation;
+    static float[][] yRotation;
+    static float[][] zRotation;
+    float[][] matTrans = m.matTrans((0.0f), (0.0f), 5.0f);
     Object o = new Object();
 
     boolean wireFrame = false;
@@ -28,6 +35,10 @@ public class Main extends PApplet {
     boolean axis = false;
     boolean freeRotate = false;
     boolean bBox;
+    boolean xRotate = false;
+    boolean yRotate = false;
+    boolean zRotate = false;
+    boolean showUI = true;
 
     float fovMultiplier;
     float ZMultiplier;
@@ -42,14 +53,17 @@ public class Main extends PApplet {
     double minXRadius = 0.0;
     double maxYRadius = 0.0;
     double maxXRadius = 0.0;
+    double xTranslate = 0.0;
+    double yTranslate = 0.0;
     Coordinate prev;
     Coordinate cur;
+    double multi = 1;
 
     Vector3D cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
 
     //"sphere", "fox", "cube", or "teapot", or "gun", or "jeep"
-    String obj = "gun";
+    String obj = "fox";
 
     public static void main(String[] args) {
         PApplet.main("Main");
@@ -59,12 +73,18 @@ public class Main extends PApplet {
         size(xSize, ySize, processing.core.PConstants.P2D);
         try {
             loadProjectionMatrix();
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
             e.printStackTrace();
         }
     }
 
     public void setup() {
+//        String[] args1 = {
+//                "Gyro"
+//        };
+//        Gyro g = new Gyro();
+//        PApplet.runSketch(args1, g);
+
         String[] args = {
                 "Settings"
         };
@@ -73,7 +93,8 @@ public class Main extends PApplet {
 
         if (getGraphics().isGL()) {
             final com.jogamp.newt.Window w = (com.jogamp.newt.Window) getSurface().getNative();
-            w.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
+            w.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE);
+            n -= 1;
         }
 
         originX = (int) (((width)) / 2.0);
@@ -84,7 +105,7 @@ public class Main extends PApplet {
         cam1 = new Vector3D(0, 0, -100000000);
     }
 
-    private void loadProjectionMatrix() throws FileNotFoundException {
+    private void loadProjectionMatrix() throws FileNotFoundException, UnsupportedEncodingException {
         if (FOV <= 90) {
             FOV *= 2;
         }
@@ -92,11 +113,13 @@ public class Main extends PApplet {
         aspectRatio = height / (float) (width);
         fovMultiplier = (float) (1 / (Math.tan((FOV * (3.14159f / 180.0f)) / 2)));
         ZMultiplier = (zFar / (zFar - zNear));
-        initObject(obj);
+        if (!(obj.equals("other"))) {
+            initObject(obj);
+        }
         projectionMatrix = m.initProjectionMatrix(aspectRatio, fovMultiplier, ZMultiplier, zNear);
     }
 
-    private void initObject(String obj) throws FileNotFoundException {
+    private void initObject(String obj) {
         if (obj.equals("cube")) {
             Cube c = new Cube(100);
             o.points = c.getPoints();
@@ -108,13 +131,20 @@ public class Main extends PApplet {
         }
     }
 
-    private void initRotationMatrix() {
+    private void initObject(File file) throws FileNotFoundException {
+        ObjectLoader object = new ObjectLoader(file);
+        o.points = object.points;
+        o.triangles = object.triangles;
+    }
+
+    public static void initRotationMatrix() {
         xRotation = m.initXRotation(xAngle);
         yRotation = m.initYRotation(yAngle);
         zRotation = m.initZRotation(zAngle);
     }
 
     public void draw() {
+        background(0);
         ArrayList<Triangle> trans;
         ArrayList<Triangle> normalTriangles = new ArrayList<>();
         ArrayList<Vector3D> normals = new ArrayList<>();
@@ -123,9 +153,11 @@ public class Main extends PApplet {
         ArrayList<Triangle> projectedTriangles;
         ArrayList<Triangle> coloredNormalTriangles;
 
-        displayText();
+        if (showUI) {
+            displayText();
+        }
 
-        translate((int) (((width)) / 2.0), (int) (((19 * (height))) / 32.0));
+        translate((float) ((int) (((width)) / 2.0) + xTranslate), (float) ((int) ((((19 * (height))) / 32.0)) + yTranslate));
 
         //DISPLAY PIPELINE
         if (frame != 0) {
@@ -139,7 +171,7 @@ public class Main extends PApplet {
 
             //CREATE ALL NORMALS
             for (Triangle t : trans) {
-                normals.add(normal(t));
+                normals.add(vm.multiply(normal(t), (float) multi));
             }
 
             //CALCULATE WHICH TRIANGLES ARE VISIBLE
@@ -167,19 +199,30 @@ public class Main extends PApplet {
             setBoundingBox(projectedTriangles);
             if (bBox) {
                 rectMode(CORNERS);
-                rect((float) minXRadius, (float) minYRadius, (float) maxXRadius, (float) maxYRadius);
+                rect((float) (minXRadius), (float) (minYRadius), (float) (maxXRadius), (float) maxYRadius);
             }
 
             //DRAWING THE TRIANGLES
             drawTriangles(projectedTriangles);
 
-            //AXIS VISUALIZATION & FREE ROTATE CHECK
+            //AXIS VISUALIZATION
             if (axis) {
                 drawAxisVisualization();
             }
+
+            //FREE ROTATE CHECK
             if (freeRotate) {
                 xAngle += 0.02 + angleMultiplier;
                 yAngle += 0.02 + angleMultiplier;
+                zAngle += 0.02 + angleMultiplier;
+            }
+            if (xRotate) {
+                xAngle += 0.02 + angleMultiplier;
+            }
+            if (yRotate) {
+                yAngle += 0.02 + angleMultiplier;
+            }
+            if (zRotate) {
                 zAngle += 0.02 + angleMultiplier;
             }
         }
@@ -187,7 +230,6 @@ public class Main extends PApplet {
     }
 
     private void displayText() {
-        background(color(0, 0, 0));
         fill(0, 255, 0);
         textSize(13);
         text("fps: " + frameRate, 5, 15);
@@ -197,14 +239,16 @@ public class Main extends PApplet {
         text("axis: " + (axis), 5, 75);
         text("box: " + (bBox), 5, 90);
         text("FOV: " + (FOV), 5, 105);
-        text((dmouseX - originX) + " , " + (dmouseY - originY), 5, 120);
-        text((yAngle) + " , " + (xAngle), 5, 135);
+        text("mouse position: " + (dmouseX - originX) + " , " + (dmouseY - originY), 5, 120);
+        text("translate: " + (xTranslate) + " , " + (yTranslate), 5, 135);
+        text("x rotation: " + (xRotate), 5, 150);
+        text("y rotation: " + (yRotate), 5, 165);
+        text("z rotation: " + (zRotate), 5, 180);
         strokeWeight(2);
     }
 
     private ArrayList<Triangle> translateTriangles(ArrayList<Triangle> rotatedTriangles) {
         ArrayList<Triangle> trans = new ArrayList<>();
-        float[][] matTrans = m.matTrans(0.0f, 0.0f, 5.0f);
         for (Triangle t : rotatedTriangles) {
             trans.add(new Triangle(m.matrixMultiply4x4(matTrans, t.getP1()), m.matrixMultiply4x4(matTrans, t.getP2()), m.matrixMultiply4x4(matTrans, t.getP3())));
         }
@@ -239,10 +283,10 @@ public class Main extends PApplet {
     }
 
     private void setBoundingBox(ArrayList<Triangle> projectedTriangles) {
-        minXRadius = 0.0;
-        minYRadius = 0.0;
-        maxXRadius = 0.0;
-        maxYRadius = 0.0;
+        minXRadius = 0;
+        minYRadius = 0;
+        maxXRadius = 0;
+        maxYRadius = 0;
         for (Triangle t : projectedTriangles) {
             //MIN Y RADIUS
             if (t.getP1().getY() < 0 && t.getP1().getY() < minYRadius) {
@@ -401,6 +445,8 @@ public class Main extends PApplet {
     }
 
     private void drawAxisVisualization() {
+        translate(-(float) ((int) (((width)) / 2.0) + xTranslate), -(float) ((int) ((((19 * (height))) / 32.0)) + yTranslate));
+        translate((((int) (((width)) / 2.0))), ((int) ((((19 * (height))) / 32.0))));
         //X, Y, Z AXIS VISUALIZATION
         stroke(0, 0, 255);
         line(0, 0, 0, 0, 0, 10);
@@ -429,7 +475,7 @@ public class Main extends PApplet {
 
             try {
                 loadProjectionMatrix();
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException | UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         } else if (key == '+') {
@@ -437,7 +483,7 @@ public class Main extends PApplet {
 
             try {
                 loadProjectionMatrix();
-            } catch (FileNotFoundException e) {
+            } catch (FileNotFoundException | UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
         } else if (key == ',') {
@@ -450,7 +496,7 @@ public class Main extends PApplet {
             this.axis = !axis;
         } else if (key == 's') {
             String[] args = {
-                    "TwoFrameTest"
+                    "SecondApplet"
             };
             SecondApplet sa = new SecondApplet();
             PApplet.runSketch(args, sa);
@@ -459,16 +505,89 @@ public class Main extends PApplet {
         } else if (key == 'g') {
             this.freeRotate = !freeRotate;
         } else if (key == 'q') {
-            this.xAngle = 0;
-            this.yAngle = 0;
-            this.zAngle = 0;
+            xAngle = 0;
+            yAngle = 0;
+            zAngle = 0;
+            this.xTranslate = 0;
+            this.yTranslate = 0;
+            this.FOV = 270f;
+
+            try {
+                loadProjectionMatrix();
+            } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         } else if (key == 'b') {
             this.bBox = !bBox;
+        } else if (key == 'x') {
+            this.xRotate = !xRotate;
+        } else if (key == 'y') {
+            this.yRotate = !yRotate;
+        } else if (key == 'z') {
+            this.zRotate = !zRotate;
+        } else if (key == 'u') {
+            this.showUI = !showUI;
+        } else if (key == 'c') {
+            int response = JOptionPane.showConfirmDialog(null, "Would you like to use a preloaded model?", "Load", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+                JFrame jf = new JFrame();
+                jf.setAlwaysOnTop(true);
+                String[] choices = {"sphere", "fox", "cube", "teapot", "gun", "jeep"};
+                try {
+                    this.obj = (String) JOptionPane.showInputDialog(jf, "Choose:",
+                            "Choose Preloaded Model", JOptionPane.QUESTION_MESSAGE, null, // Use
+                            // default
+                            // icon
+                            choices, // Array of choices
+                            choices[1]);
+                    try {
+                        loadProjectionMatrix();
+                    } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                } catch (NullPointerException e) {
+                    System.out.println("Canceled!");
+                }
+            } else {
+                File whichFile = chooseFile();
+                if (whichFile != null) {
+                    try {
+                        this.obj = "other";
+                        initObject(whichFile);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        loadProjectionMatrix();
+                    } catch (FileNotFoundException | UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
+    }
+
+    private File chooseFile() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        JFileChooser fileDialog = new JFileChooser();
+        int returnVal = fileDialog.showOpenDialog(new Component() {
+        });
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            return fileDialog.getSelectedFile();
+        }
+        return null;
     }
 
     @Override
     public void mousePressed(MouseEvent event) {
+        minXRadius += xTranslate;
+        maxXRadius += xTranslate;
+        minYRadius += yTranslate;
+        maxYRadius += yTranslate;
         if ((event.getX() - originX) > minXRadius && (event.getX() - originX) < maxXRadius && (event.getY() - originY) > minYRadius && (event.getY() - originY) < maxYRadius) {
             prev = new Coordinate((event.getX() - originX), (event.getY() - originY));
         } else {
@@ -479,31 +598,62 @@ public class Main extends PApplet {
     @Override
     public void mouseDragged(MouseEvent event) {
         cur = new Coordinate((event.getX() - originX), (event.getY() - originY));
-        if (prev != null) {
-            double changeX = 0;
-            if (cur.getX() >= prev.getX()) {
-                changeX = cur.getX() - prev.getX();
-            } else if (cur.getX() < prev.getX()) {
-                changeX = prev.getX() - cur.getX();
-            }
-            double changeY = 0;
-            if (cur.getY() >= prev.getY()) {
-                changeY = cur.getY() - prev.getY();
-            } else if (cur.getY() < prev.getY()) {
-                changeY = prev.getY() - cur.getY();
-            }
-
-            if (changeX > changeY) {
+        if (mouseButton == RIGHT) {
+            if (prev != null) {
+                double changeX = 0;
                 if (cur.getX() >= prev.getX()) {
-                    yAngle += (Math.atan(((cur.getX() - originX) - (prev.getX() - originX)) / 2.0)) / 50;
+                    changeX = cur.getX() - prev.getX();
                 } else if (cur.getX() < prev.getX()) {
-                    yAngle -= (Math.atan(((prev.getX() - originX) - (cur.getX() - originX)) / 2.0)) / 50;
+                    changeX = prev.getX() - cur.getX();
                 }
-            } else if (changeY >= changeX) {
+                double changeY = 0;
                 if (cur.getY() >= prev.getY()) {
-                    xAngle -= (Math.atan(((prev.getY() - originY) - (cur.getY() - originY)) / 2.0)) / 50;
+                    changeY = cur.getY() - prev.getY();
                 } else if (cur.getY() < prev.getY()) {
-                    xAngle += (Math.atan(((cur.getY() - originY) - (prev.getY() - originY)) / 2.0)) / 50;
+                    changeY = prev.getY() - cur.getY();
+                }
+
+                if (changeX > changeY) {
+                    if (cur.getX() >= prev.getX()) {
+                        xTranslate += 3;
+                    } else if (cur.getX() < prev.getX()) {
+                        xTranslate -= 3;
+                    }
+                } else if (changeY >= changeX) {
+                    if (cur.getY() >= prev.getY()) {
+                        yTranslate += 3;
+                    } else if (cur.getY() < prev.getY()) {
+                        yTranslate -= 3;
+                    }
+                }
+            }
+        } else {
+            if (prev != null) {
+                double changeX = 0;
+                if (cur.getX() >= prev.getX()) {
+                    changeX = cur.getX() - prev.getX();
+                } else if (cur.getX() < prev.getX()) {
+                    changeX = prev.getX() - cur.getX();
+                }
+                double changeY = 0;
+                if (cur.getY() >= prev.getY()) {
+                    changeY = cur.getY() - prev.getY();
+                } else if (cur.getY() < prev.getY()) {
+                    changeY = prev.getY() - cur.getY();
+                }
+
+                if (changeX > changeY) {
+                    if (cur.getX() >= prev.getX()) {
+                        yAngle += (Math.atan(((cur.getX() - originX) - (prev.getX() - originX)) / 2.0)) / 50;
+                    } else if (cur.getX() < prev.getX()) {
+                        yAngle -= (Math.atan(((prev.getX() - originX) - (cur.getX() - originX)) / 2.0)) / 50;
+                    }
+                } else if (changeY >= changeX) {
+                    if (cur.getY() >= prev.getY()) {
+                        xAngle -= (Math.atan(((prev.getY() - originY) - (cur.getY() - originY)) / 2.0)) / 50;
+                    } else if (cur.getY() < prev.getY()) {
+                        xAngle += (Math.atan(((cur.getY() - originY) - (prev.getY() - originY)) / 2.0)) / 50;
+                    }
                 }
             }
         }
@@ -518,7 +668,7 @@ public class Main extends PApplet {
 
                 try {
                     loadProjectionMatrix();
-                } catch (FileNotFoundException e) {
+                } catch (FileNotFoundException | UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             }
@@ -528,7 +678,7 @@ public class Main extends PApplet {
 
                 try {
                     loadProjectionMatrix();
-                } catch (FileNotFoundException e) {
+                } catch (FileNotFoundException | UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
             }
@@ -537,10 +687,7 @@ public class Main extends PApplet {
 
     @Override
     public void exitActual() {
-        if (Main.n == 1) {
-            System.exit(0);
-        }
-        Main.n--;
+        System.exit(0);
     }
 }
 
@@ -549,10 +696,11 @@ public class Main extends PApplet {
 class SecondApplet extends PApplet {
 
     public void settings() {
-        size(610, 600);
+        size(610, 615);
     }
 
     public void setup() {
+        Main.n += 1;
         if (getGraphics().isGL()) {
             final com.jogamp.newt.Window w = (com.jogamp.newt.Window) getSurface().getNative();
             w.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
@@ -560,8 +708,7 @@ class SecondApplet extends PApplet {
 
         surface.setTitle("Settings");
         surface.setResizable(true);
-        surface.setAlwaysOnTop(true);
-        surface.setLocation(100, 300);
+        surface.setLocation(this.displayWidth / 9, this.displayHeight / 5);
     }
 
     public void draw() {
@@ -578,15 +725,328 @@ class SecondApplet extends PApplet {
 
         text(",: rotate less, backwards", 10, 210);
         text("-: rotate more, forwards", 10, 240);
-        text("s: open settings", 10, 270);
-        text("b: show bounding box", 10, 300);
-        text("g: free rotate, press , or .", 10, 330);
-        text("q: reset model position", 10, 360);
-        text(" ", 10, 390);
-        text("drag with left mouse to rotate x or y", 10, 420);
+        text("x: toggle x rotation", 10, 270);
+        text("y: toggle y rotation", 10, 300);
+        text("z: toggle z rotation", 10, 330);
+        text("s: open settings", 10, 360);
+        text("b: show bounding box", 10, 390);
+        text("g: free rotate, press , or .", 10, 420);
+        text("q: reset model position", 10, 450);
+        text("u: show UI", 10, 480);
+        text(" ", 10, 510);
+        text("drag with left mouse to rotate x or y", 10, 540);
+        text("drag with right mouse to pan x or y", 10, 570);
+        text("scroll wheel to zoom in and out", 10, 600);
     }
 
     @Override
     public void exitActual() {
+        Main.n -= 1;
+    }
+}
+
+class SwitchOut extends PApplet {
+
+    public void settings() {
+        size(610, 615);
+    }
+
+    public void setup() {
+        Main.n += 1;
+        if (getGraphics().isGL()) {
+            final com.jogamp.newt.Window w = (com.jogamp.newt.Window) getSurface().getNative();
+            w.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
+        }
+
+        surface.setTitle("Settings");
+        surface.setResizable(true);
+        surface.setLocation(this.displayWidth / 9, this.displayHeight / 5);
+    }
+
+    public void draw() {
+        background(255);
+        strokeWeight(2);
+        fill(0);
+        textSize(31);
+        text("w: toggle wireframe", 10, 30);
+        text("a: toggle axis visualization", 10, 60);
+        text("m: toggle model", 10, 90);
+        text("i, j, k, l: move light up, left, down, right", 10, 120);
+        text("+: zoom in", 10, 150);
+        text("-: zoom out", 10, 180);
+
+        text(",: rotate less, backwards", 10, 210);
+        text("-: rotate more, forwards", 10, 240);
+        text("x: toggle x rotation", 10, 270);
+        text("y: toggle y rotation", 10, 300);
+        text("z: toggle z rotation", 10, 330);
+        text("s: open settings", 10, 360);
+        text("b: show bounding box", 10, 390);
+        text("g: free rotate, press , or .", 10, 420);
+        text("q: reset model position", 10, 450);
+        text("u: show UI", 10, 480);
+        text(" ", 10, 510);
+        text("drag with left mouse to rotate x or y", 10, 540);
+        text("drag with right mouse to pan x or y", 10, 570);
+        text("scroll wheel to zoom in and out", 10, 600);
+    }
+
+    @Override
+    public void exitActual() {
+        Main.n -= 1;
+    }
+}
+
+//GYRO WINDOW
+class Gyro extends PApplet {
+
+    private Coordinate prev;
+    public boolean isX;
+    public boolean isY;
+    public boolean isZ;
+    public Vector3D angleDiff = new Vector3D();
+    public String lastChanged = "";
+    public long startTime;
+
+    public void setup() {
+        Main.n += 1;
+        if (getGraphics().isGL()) {
+            final com.jogamp.newt.Window w = (com.jogamp.newt.Window) getSurface().getNative();
+            w.setDefaultCloseOperation(WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE);
+        }
+
+        surface.setTitle("Gyroscope");
+        surface.setResizable(true);
+        surface.setLocation(this.displayWidth / 9, this.displayHeight / 5);
+    }
+
+    public void settings() {
+        size(610, 615, P3D);
+        frameRate = 60;
+    }
+
+    //ADD RECENT CHANGED STRING THAT CHANGES WHAT ROTATIONS ARE FIRST
+    public void draw() {
+        background(0);
+        lights();
+        noStroke();
+        strokeWeight(2);
+        translate((int) (this.width / 2.0), (int) (this.height / 2.0) - (int) (250 / 2.0), -200);
+        translate(0, (int) (125 / 2.0), 0);
+        translate(0, (int) (250 / 2.0));
+        if (!(lastChanged.equals(""))) {
+            rotateX(angleDiff.getX());
+            rotateY(angleDiff.getY());
+            rotateZ(angleDiff.getZ());
+        }
+        fill(125);
+        sphere(125);
+        translate(0, (int) -(250 / 2.0));
+        fill(255, 0, 0);
+        drawCylinder();
+        translate(0, -145);
+        drawCone();
+        translate(0, (145 * 2));
+        rotateX(radians(270));
+        translate(0, (int) -(250 / 2.0));
+        fill(0, 0, 255);
+        drawCylinder();
+        translate(0, -145);
+        translate(0, 145);
+        rotateZ(radians(90));
+        translate((int) (250 / 2.0), (int) -(250 / 2.0), 0);
+        fill(0, 255, 0);
+        drawCylinder();
+        translate(0, -145);
+        drawCone();
+        translate(0, 145);
+        translate((int) -(250 / 2.0), (int) (250 / 2.0), 0);
+    }
+
+    void drawCylinder() {
+        float angle = (float) (360 / (double) 50);
+        float halfHeight = (float) 250 / 2;
+        // draw top shape
+        beginShape();
+        for (int i = 0; i < (double) 360; i++) {
+            float x = cos(radians(i * angle)) * (float) 25;
+            float y = sin(radians(i * angle)) * (float) 25;
+            vertex(x, -halfHeight, y);
+        }
+        endShape(CLOSE);
+        // draw bottom shape
+        beginShape();
+        for (int i = 0; i < (double) 360; i++) {
+            float x = cos(radians(i * angle)) * (float) 25;
+            float y = sin(radians(i * angle)) * (float) 25;
+            vertex(x, halfHeight, y);
+        }
+        endShape(CLOSE);
+        // draw body
+        beginShape(TRIANGLE_STRIP);
+        for (int i = 0; i < (double) 360 + 1; i++) {
+            float x = cos(radians(i * angle)) * (float) 25;
+            float y = sin(radians(i * angle)) * (float) 25;
+            vertex(x, halfHeight, y);
+            vertex(x, -halfHeight, y);
+        }
+        endShape(CLOSE);
+    }
+
+    void drawCone() {
+        float angle = (float) (360 / 18);
+        float halfHeight = (float) 90 / 2;
+        // top
+        beginShape();
+        for (int i = 0; i < 18; i++) {
+            float x = cos(radians(i * angle));
+            float y = sin(radians(i * angle));
+            vertex(x, -halfHeight, y);
+        }
+        endShape(CLOSE);
+        // bottom
+        beginShape();
+        for (int i = 0; i < 18; i++) {
+            float x = cos(radians(i * angle)) * (float) 50;
+            float y = sin(radians(i * angle)) * (float) 50;
+            vertex(x, halfHeight, y);
+        }
+        endShape(CLOSE);
+        // draw body
+        beginShape(TRIANGLE_STRIP);
+        for (int i = 0; i < 18 + 1; i++) {
+            float x1 = cos(radians(i * angle));
+            float y1 = sin(radians(i * angle));
+            float x2 = cos(radians(i * angle)) * (float) 50;
+            float y2 = sin(radians(i * angle)) * (float) 50;
+            vertex(x1, -halfHeight, y1);
+            vertex(x2, halfHeight, y2);
+        }
+        endShape(CLOSE);
+    }
+
+    @Override
+    public void mousePressed(MouseEvent event) {
+        Coordinate location = new Coordinate(event.getY(), event.getX());
+        loadPixels();
+        Vector3D[][] colors = load2DColorArr();
+        if (!((event.getX() > width) || (event.getX() < 0)) && !((event.getY() > height) || (event.getY() < 0))) {
+            Vector3D currentColor = colors[location.getX()][location.getY()];
+            if (currentColor.getX() > currentColor.getY() && currentColor.getX() > currentColor.getZ()) {
+                System.out.println("red");
+                this.isY = true;
+                prev = new Coordinate((event.getX()), (event.getY()));
+                lastChanged = "Y";
+            } else if (currentColor.getY() > currentColor.getX() && currentColor.getY() > currentColor.getZ()) {
+                System.out.println("green");
+                this.isX = true;
+                prev = new Coordinate((event.getX()), (event.getY()));
+                lastChanged = "X";
+            } else if (currentColor.getZ() > currentColor.getX() && currentColor.getZ() > currentColor.getY()) {
+                System.out.println("blue");
+                this.isZ = true;
+                prev = new Coordinate((event.getX()), (event.getY()));
+                lastChanged = "Z";
+            } else {
+                prev = null;
+            }
+        }
+        this.startTime = System.currentTimeMillis();
+    }
+
+    private Vector3D[][] load2DColorArr() {
+        Vector3D[][] colors = new Vector3D[height][width];
+        for (int i = 0; i < height; i++) {
+            int w = (i * (width));
+            for (int j = 0; j < width; j++) {
+                Vector3D colorToAdd = new Vector3D();
+                try {
+                    int color = pixels[w + j];
+                    colorToAdd.setX(red(color));
+                    colorToAdd.setY(green(color));
+                    colorToAdd.setZ(blue(color));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    System.out.println("here");
+                }
+                colors[i][j] = colorToAdd;
+            }
+        }
+        return colors;
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent event) {
+        System.out.println((startTime) - (System.currentTimeMillis()));
+        if (Math.abs((startTime) - (System.currentTimeMillis())) > 150) {
+            Coordinate cur = new Coordinate((event.getX()), (event.getY()));
+            if (prev != null) {
+                double changeX = 0;
+                if (cur.getX() >= prev.getX()) {
+                    changeX = cur.getX() - prev.getX();
+                } else if (cur.getX() < prev.getX()) {
+                    changeX = prev.getX() - cur.getX();
+                }
+                double changeY = 0;
+                if (cur.getY() >= prev.getY()) {
+                    changeY = cur.getY() - prev.getY();
+                } else if (cur.getY() < prev.getY()) {
+                    changeY = prev.getY() - cur.getY();
+                }
+
+                //X ANGLE
+                if (isX) {
+                    if (changeX <= 0) {
+                        angleDiff.setY(angleDiff.getY() + (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                        Main.yAngle = (Main.yAngle + (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                    } else if (changeX > 0) {
+                        angleDiff.setY(angleDiff.getY() - (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                        Main.yAngle = (Main.yAngle - (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                    }
+                }
+
+                //Y ANGLE
+                if (isY) {
+                    if (changeY <= 0) {
+                        angleDiff.setZ(angleDiff.getZ() + (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                        Main.zAngle = (Main.zAngle + (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                    } else if (changeY > 0) {
+                        angleDiff.setZ(angleDiff.getZ() - (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                        Main.zAngle = (Main.zAngle - (float) (Math.atan(((prev.getX() - (int) (width / 2.0)) - (cur.getX() - (int) (width / 2.0))) / 1.5)) / 50);
+                    }
+                }
+
+                //Z ANGLE
+                if (isZ) {
+                    if (changeY <= 0) {
+                        angleDiff.setX(angleDiff.getX() - (float) (Math.atan(((prev.getY() - (int) (height / 2.0)) - (cur.getY() - (int) (height / 2.0))) / 1.5)) / 50);
+                        Main.xAngle = (Main.xAngle + (float) (Math.atan(((prev.getY() - (int) (height / 2.0)) - (cur.getY() - (int) (height / 2.0))) / 1.5)) / 50);
+                    } else if (changeY > 0) {
+                        angleDiff.setX(angleDiff.getX() + (float) (Math.atan(((prev.getY() - (int) (height / 2.0)) - (cur.getY() - (int) (height / 2.0))) / 1.5)) / 50);
+                        Main.xAngle = (Main.xAngle - (float) (Math.atan(((prev.getY() - (int) (height / 2.0)) - (cur.getY() - (int) (height / 2.0))) / 1.5)) / 50);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseReleased() {
+        isX = false;
+        isY = false;
+        isZ = false;
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event) {
+        if (key == 'q') {
+            angleDiff = new Vector3D(0, 0, 0);
+        }
+    }
+
+    @Override
+    public void exitActual() {
+        if (!(Main.n <= 1)) {
+            Main.n -= 1;
+        }
     }
 }

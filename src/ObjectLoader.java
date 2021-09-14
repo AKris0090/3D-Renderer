@@ -1,15 +1,27 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class ObjectLoader {
 
     public ArrayList<Vector3D> points = new ArrayList<>();
     public ArrayList<Triangle> triangles = new ArrayList<>();
-    public int scaleFactor;
+    public int scaleFactor = 1;
 
-    public ObjectLoader(String type) throws FileNotFoundException {
+    //ADD NEW FILE HERE, FOLLOW THE PATTERN
+    public ObjectLoader(String type) {
+        boolean shouldTry = true;
+        String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+        String[] parts = decodedPath.split("/");
+        StringBuilder newString = new StringBuilder();
+        for (int i = 0; i < parts.length - 1; i++) {
+            newString.append(parts[i]).append("\\");
+        }
         File myObj = null;
         switch (type) {
             case "cube":
@@ -18,28 +30,40 @@ public class ObjectLoader {
                 triangles = c.getTriangles();
                 break;
             case "fox":
-                myObj = new File("low-poly-fox-by-pixelmannen.obj");
+                myObj = new File(newString + "\\low-poly-fox-by-pixelmannen.obj");
                 scaleFactor = 3;
                 break;
             case "sphere":
-                myObj = new File("sphere.obj");
+                myObj = new File(newString + "\\sphere.obj");
                 scaleFactor = 50;
                 break;
             case "teapot":
-                myObj = new File("teapot.obj");
-                scaleFactor = 50;
+                myObj = new File(newString + "\\teapot.obj");
+                scaleFactor = 300;
                 break;
             case "gun":
-                myObj = new File("gun.obj");
+                myObj = new File(newString + "\\gun.obj");
                 scaleFactor = 3000;
                 break;
             case "jeep":
-                myObj = new File("jeep.obj");
+                myObj = new File(newString + "\\jeep.obj");
                 scaleFactor = 150;
                 break;
+            case "other":
+                shouldTry = false;
+                break;
             default:
-                throw new FileNotFoundException();
+                System.out.println(Arrays.toString(new FileNotFoundException().getStackTrace()));
         }
+        if (shouldTry) {
+            tryLoad(myObj);
+        }
+    }
+
+    public ObjectLoader(File file1) {
+        File myObj;
+        myObj = new File(file1.getAbsolutePath());
+        scaleFactor = 300;
         tryLoad(myObj);
     }
 
