@@ -1,10 +1,20 @@
-# Make sure you have Processing
+# If Running in Java
 
 #### Run Main + change String obj to "sphere", "cube", "fox", "gun", "jeep", or "teapot"
 #### You know how it goes
 #### 2D projection based off of a youtube guide by javidx9, implemented in Java using PApplet
 #### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
 
+# If Running JAR File
+#### Download Java 16 (Version is important)
+#### Download JAR file
+#### Run JAR file with Java 16
+#### Press "c" to choose between models or select a file
+
+## 9/13/2021
+#### - added options to select preloaded models or select file to load
+#### - fixed bug with closing windows
+#### - added JAR file for easy run
 
 ## 5/4/2021
 #### - control light with i - up, j - left, k - down, l - right
