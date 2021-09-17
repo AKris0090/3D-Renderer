@@ -29,6 +29,8 @@ Now, the actual drawing of the preloaded triangles onto the 2D screen. to start 
 #### Download JAR file
 #### Run JAR file with Java 16
 
+# Updates
+
 ## 9/13/2021
 #### - added options to select preloaded models or select file to load
 #### - fixed bug with closing windows
