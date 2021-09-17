@@ -1,18 +1,18 @@
-#3D Renderer
-####Starting off, the coordinates in 3D space are imported from the .obj file, where the single vertices are marked with
+# 3D Renderer
+#### Starting off, the coordinates in 3D space are imported from the .obj file, where the single vertices are marked with
 a "v" followed by a sequence of numbers representing their position in 3D space. This is called by the class
 ObjectLoader. The .obj files also gives the faces of an object, denoted by an "f" at the start of a line. The set of
 numbers following an "f" denotation mark indexes of the vertices that make up the face. By arranging the vertices into
 an ArrayList, we can easily get faces by calling the index stored within the List. Also, within the setup of the
 application, I also set the camera's position in the 3D world as the point the scene is viewed from.
 
-####Next, I load a projection matrix from a couple of predefined constants. The FOV (default - 270 deg), the aspect ratio
+#### Next, I load a projection matrix from a couple of predefined constants. The FOV (default - 270 deg), the aspect ratio
 of the viewing plane (default - 16:9), an FOV multiplier, which is arctan of the FOV, in radians, divided by two, and
 a viewing distance, or Z, multiplier (default - 1.001001). Using my MatrixMath class, I generate the projection matrix
 with these values. A projection matrix is a 4x4 matrix that, when multiplied by a 3 dimensional vector, can return
 another vector in 2 dimensions corresponding to a predetermined viewing plane.
 
-####Now, the actual drawing of the preloaded triangles onto the 2D screen. to start off, I initiate rotation matrices using
+#### Now, the actual drawing of the preloaded triangles onto the 2D screen. to start off, I initiate rotation matrices using
 a predetermined angle so that rotation of the model is possible if the user wants to. I multiply the triangles by these
 rotation matrices (167). Then, I translate the triangles in 3D space so that they appear in the middle of the screen
 with translation matrices (249). Next, I calculate the normals of each triangle by using the cross product between two
@@ -24,16 +24,16 @@ list of triangles in a reverse order so that the furthest triangles are displaye
 that there is no overlapping triangles and see-through models. Finally, I project these triangles into a 2D plane by
 multiplying them with the preloaded projection matrix, and finally draw the models onto screen.
 
-###Some features I added are:
-####-Turning on and off an axis visualization
-####-Turning on and off the wireframe of the model
-####-Turning on and off the model faces
-####-Moving the lightsource to different locations
-####-Free rotation
-####-Zooming in and out
-####-A bounding box
-####-Mouse drag to rotate the model on the x or y axis
-####-Right mouse drag to pan the model on the x or y axis
+### Some features I added are:
+#### -Turning on and off an axis visualization
+#### -Turning on and off the wireframe of the model
+#### -Turning on and off the model faces
+#### -Moving the lightsource to different locations
+#### -Free rotation
+#### -Zooming in and out
+#### -A bounding box
+#### -Mouse drag to rotate the model on the x or y axis
+#### -Right mouse drag to pan the model on the x or y axis
 
 # If Running in Java
 
