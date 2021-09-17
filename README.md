@@ -1,4 +1,8 @@
 # 3D Renderer
+
+This project is involves projection of 3D coordinates to 2D space, based off of a youtube guide by javidx9, implemented in Java using PApplet
+#### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
+
 Starting off, the coordinates in 3D space are imported from the .obj file, where the single vertices are marked with a "v" followed by a sequence of numbers representing their position in 3D space. This is called by the class ObjectLoader. The .obj files also gives the faces of an object, denoted by an "f" at the start of a line. The set of numbers following an "f" denotation mark indexes of the vertices that make up the face. By arranging the vertices into an ArrayList, we can easily get faces by calling the index stored within the List. Also, within the setup of the application, I also set the camera's position in the 3D world as the point the scene is viewed from.
 
 Next, I load a projection matrix from a couple of predefined constants. The FOV (default - 270 deg), the aspect ratio of the viewing plane (default - 16:9), an FOV multiplier, which is arctan of the FOV, in radians, divided by two, and a viewing distance, or Z, multiplier (default - 1.001001). Using my MatrixMath class, I generate the projection matrix with these values. A projection matrix is a 4x4 matrix that, when multiplied by a 3 dimensional vector, can return another vector in 2 dimensions corresponding to a predetermined viewing plane.
@@ -21,8 +25,6 @@ Now, the actual drawing of the preloaded triangles onto the 2D screen. to start 
 #### Run Main + change String obj to "sphere", "cube", "fox", "gun", "jeep", or "teapot"
 #### You know how it goes
 #### Press "c" to choose between models or select a file (MUST CHOOSE .OBJ FILE, other files will not work)
-#### 2D projection based off of a youtube guide by javidx9, implemented in Java using PApplet
-#### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
 
 # If Running JAR File
 #### Download Java 16 (Version is important)
