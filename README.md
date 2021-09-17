@@ -5,7 +5,7 @@ Next, I load a projection matrix from a couple of predefined constants. The FOV 
 
 Now, the actual drawing of the preloaded triangles onto the 2D screen. to start off, I initiate rotation matrices using a predetermined angle so that rotation of the model is possible if the user wants to. I multiply the triangles by these rotation matrices (167). Then, I translate the triangles in 3D space so that they appear in the middle of the screen with translation matrices (249). Next, I calculate the normals of each triangle by using the cross product between two of the 3 points that make up the triangle and normalizing the result. Using these normals, I calculate which triangles are able to be seen by the camera using the dot product between the normals and the camera vector. I recalculate the normals for these, and then use the dot product between the normals of the triangles and the 3D coordinates of a pre-determined light source to calculate the color with which the triangles should be displayed with. I then sort the list of triangles in a reverse order so that the furthest triangles are displayed first, and then the closest ones, so that there is no overlapping triangles and see-through models. Finally, I project these triangles into a 2D plane by multiplying them with the preloaded projection matrix, and finally draw the models onto screen.
 
-### Some features I added are:
+## Some features I added are:
 #### -Turning on and off an axis visualization
 #### -Turning on and off the wireframe of the model
 #### -Turning on and off the model faces
