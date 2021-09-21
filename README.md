@@ -1,3 +1,9 @@
+# If Running JAR File
+#### Download Java 16 (Version is important)
+#### Download project
+#### Unzip project
+#### Run JAR file with Java 16 (3D_Renderer_jar/3D Renderer)
+
 # 3D Renderer
 
   This project is involves projection of 3D coordinates to 2D space, based off of a youtube guide by javidx9, implemented in Java using PApplet
@@ -20,16 +26,11 @@
 #### -Mouse drag to rotate the model on the x or y axis
 #### -Right mouse drag to pan the model on the x or y axis
 
-# If Running in Java
+# If Running in IDE
 
 #### Run Main + change String obj to "sphere", "cube", "fox", "gun", "jeep", or "teapot"
 #### You know how it goes
 #### Press "c" to choose between models or select a file (MUST CHOOSE .OBJ FILE, other files will not work)
-
-# If Running JAR File
-#### Download Java 16 (Version is important)
-#### Download JAR file
-#### Run JAR file with Java 16
 
 # Updates
 
