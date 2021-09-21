@@ -4,7 +4,7 @@
 #### Unzip project
 #### Run JAR file with Java 16 (3D_Renderer_jar/3D Renderer)
 
-# 3D Renderer
+# 3D Renderer Project Description
 
   This project is involves projection of 3D coordinates to 2D space, based off of a youtube guide by javidx9, implemented in Java using PApplet
 #### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
