@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2021.
+ *
+ * Arjun Krishnan 10/31/2021
+ * See my other coding projects at: akrishnan.netlify.app
+ * Questions, email me at: artk0090@gmail.com
+ */
+
 import com.jogamp.nativewindow.WindowClosingProtocol;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
@@ -57,7 +65,6 @@ public class Main extends PApplet {
     double yTranslate = 0.0;
     Coordinate prev;
     Coordinate cur;
-    double multi = 1;
 
     Vector3D cam1;
     Vector3D lightSource = new Vector3D(300, -300, 0);
@@ -171,12 +178,12 @@ public class Main extends PApplet {
 
             //CREATE ALL NORMALS
             for (Triangle t : trans) {
-                normals.add(vm.multiply(normal(t), (float) multi));
+                normals.add((normal(t)));
             }
 
             //CALCULATE WHICH TRIANGLES ARE VISIBLE
             try {
-                normalTriangles = reCalculateNormals(normals, rotatedTriangles);
+                normalTriangles = reCalculateNormals(normals, trans);
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
