@@ -32,7 +32,6 @@
 # If Running in IDE
 
 #### Run Main + change String obj to "sphere", "cube", "fox", "gun", "jeep", or "teapot"
-#### You know how it goes
 #### Press "c" to choose between models or select a file (MUST CHOOSE .OBJ FILE, other files will not work)
 
 # Updates
