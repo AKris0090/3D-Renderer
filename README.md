@@ -1,3 +1,6 @@
+# Quick Start Guide
+#### https://youtu.be/teK-erm_5Hg
+
 # If Running JAR File
 #### Download Java 16 (Version is important)
 #### Download project
