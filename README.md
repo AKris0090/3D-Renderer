@@ -36,6 +36,12 @@
 
 # Updates
 
+## 6/9/2022
+#### - added optimization, less creation of multiple arraylists. One arraylist of triangles, passed through all methods.
+##### - ideas:
+###### - add color profiles again (deleted due to accident)
+###### - add occlusion culling to further optimize by reducing number of triangles drawn. Possible threshold on when to include culling or not.
+
 ## 9/13/2021
 #### - added options to select preloaded models or select file to load
 #### - fixed bug with closing windows
