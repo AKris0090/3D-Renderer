@@ -109,7 +109,7 @@ public class Main extends PApplet {
         surface.setTitle("3D Renderer");
         surface.setLocation(this.displayWidth / 2, this.displayHeight / 10);
         frameRate(60);
-        cam1 = new Vector3D(0, 0, -100000000);
+        cam1 = new Vector3D(0, 0, -1000000);
     }
 
     private void loadProjectionMatrix() throws FileNotFoundException, UnsupportedEncodingException {
@@ -152,13 +152,7 @@ public class Main extends PApplet {
 
     public void draw() {
         background(0);
-        ArrayList<Triangle> trans;
-        ArrayList<Triangle> normalTriangles = new ArrayList<>();
-        ArrayList<Vector3D> normals = new ArrayList<>();
-        ArrayList<Vector3D> normalsForNormalTriangles = new ArrayList<>();
-        ArrayList<Triangle> rotatedTriangles;
-        ArrayList<Triangle> projectedTriangles;
-        ArrayList<Triangle> coloredNormalTriangles;
+        ArrayList<Triangle> triangles;
 
         if (showUI) {
             displayText();
@@ -168,49 +162,49 @@ public class Main extends PApplet {
 
         //DISPLAY PIPELINE
         if (frame != 0) {
-
             //ROTATE TRIANGLES
             initRotationMatrix();
-            rotatedTriangles = rotateAllTriangles();
+            triangles = rotateTriangles();
 
             //TRANSLATE THROUGH TRANSLATE MATRIX
-            trans = translateTriangles(rotatedTriangles);
+            translateTriangles(triangles);
 
             //CREATE ALL NORMALS
-            for (Triangle t : trans) {
-                normals.add((normal(t)));
+            for (Triangle t : triangles) {
+                t.normal = normal(t);
             }
 
-            //CALCULATE WHICH TRIANGLES ARE VISIBLE
+            //CALCULATE WHICH TRIANGLES ARE VISIBLE WITH BACKFACE CULLING
             try {
-                normalTriangles = reCalculateNormals(normals, trans);
+//
+                calculateVisible(triangles);
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
 
-            //CALCULATE NORMALS FOR ONLY VISIBLE TRIANGLES
-            for (Triangle t : normalTriangles) {
-                normalsForNormalTriangles.add(normal(t));
-            }
-
             //CALCULATE COLORS
-            coloredNormalTriangles = calculateColor(normalTriangles, normalsForNormalTriangles);
+            calculateColor(triangles);
 
             //DRAW FROM FURTHEST TRIANGLE UP
-            coloredNormalTriangles.sort(Collections.reverseOrder());
+            triangles.sort(Collections.reverseOrder());
+//            Collections.sort(triangles);
 
             //PROJECTION
-            projectedTriangles = makeProjectionVectors(coloredNormalTriangles);
+            makeProjectionVectors(triangles);
 
             //FIND BOUNDING BOX
-            setBoundingBox(projectedTriangles);
+            setBoundingBox(triangles);
             if (bBox) {
                 rectMode(CORNERS);
                 rect((float) (minXRadius), (float) (minYRadius), (float) (maxXRadius), (float) maxYRadius);
             }
 
+            translate(-(float) ((int) (((width)) / 2.0) + xTranslate), -(float) ((int) ((((19 * (height))) / 32.0)) + yTranslate));
+            text("triangles displayed: " + (triangles.size()), 5, 210);
+            translate((float) ((int) (((width)) / 2.0) + xTranslate), (float) ((int) ((((19 * (height))) / 32.0)) + yTranslate));
+
             //DRAWING THE TRIANGLES
-            drawTriangles(projectedTriangles);
+            drawTriangles(triangles);
 
             //AXIS VISUALIZATION
             if (axis) {
@@ -233,6 +227,7 @@ public class Main extends PApplet {
                 zAngle += 0.02 + angleMultiplier;
             }
         }
+
         frame++;
     }
 
@@ -251,18 +246,19 @@ public class Main extends PApplet {
         text("x rotation: " + (xRotate), 5, 150);
         text("y rotation: " + (yRotate), 5, 165);
         text("z rotation: " + (zRotate), 5, 180);
+        text("triangles: " + (o.triangles.size()), 5, 195);
         strokeWeight(2);
     }
 
-    private ArrayList<Triangle> translateTriangles(ArrayList<Triangle> rotatedTriangles) {
-        ArrayList<Triangle> trans = new ArrayList<>();
+    private void translateTriangles(ArrayList<Triangle> rotatedTriangles) {
         for (Triangle t : rotatedTriangles) {
-            trans.add(new Triangle(m.matrixMultiply4x4(matTrans, t.getP1()), m.matrixMultiply4x4(matTrans, t.getP2()), m.matrixMultiply4x4(matTrans, t.getP3())));
+            t.setP1(m.matrixMultiply4x4(matTrans, t.getP1()));
+            t.setP2(m.matrixMultiply4x4(matTrans, t.getP2()));
+            t.setP3(m.matrixMultiply4x4(matTrans, t.getP3()));
         }
-        return trans;
     }
 
-    private ArrayList<Triangle> rotateAllTriangles() {
+    private ArrayList<Triangle> rotateTriangles() {
         ArrayList<Triangle> rotatedTriangles = new ArrayList<>();
         for (Triangle t : o.triangles) {
             Vector3D p1 = new Vector3D();
@@ -353,13 +349,12 @@ public class Main extends PApplet {
         return vm.normalize(newVec);
     }
 
-    private ArrayList<Triangle> reCalculateNormals(ArrayList<Vector3D> normals, ArrayList<Triangle> rotatedTriangles) throws CloneNotSupportedException {
-        ArrayList<Triangle> normalTriangles = new ArrayList<>();
+    private void calculateVisible(ArrayList<Triangle> rotatedTriangles) throws CloneNotSupportedException {
         for (int i = 0; i < rotatedTriangles.size(); i++) {
             Triangle t = rotatedTriangles.get(i);
             Vector3D cameraRay = vm.sub(t.getP1(), cam1);
 
-            Vector3D norm = normals.get(i);
+            Vector3D norm = t.normal;
 
             float nx = norm.getX();
             float ny = norm.getY();
@@ -367,23 +362,20 @@ public class Main extends PApplet {
             Vector3D n = new Vector3D(nx, ny, nz);
 
             //DOT PRODUCT AND CAMERA POSITION CORRECTION
-            if (vm.dotProduct(n, cameraRay) < 0.0f) {
-                normalTriangles.add(t);
+            if (!(vm.dotProduct(n, cameraRay) < 0.0f)) {
+                rotatedTriangles.remove(t);
+                i--;
             }
         }
-        return normalTriangles;
     }
 
-    private ArrayList<Triangle> calculateColor(ArrayList<Triangle> normalTriangles, ArrayList<Vector3D> normals) {
-        ArrayList<Triangle> coloredTriangles = new ArrayList<>();
-        for (int i = 0; i < normalTriangles.size(); i++) {
-            Triangle thisTriangle = normalTriangles.get(i);
-
+    private void calculateColor(ArrayList<Triangle> normalTriangles) {
+        for (Triangle thisTriangle : normalTriangles) {
             //NORMALIZATION OF LIGHT POS
             lightSource = vm.normalize(lightSource);
 
             //DOT PRODUCT FROM NORMAL TO LIGHT SOURCE
-            Vector3D thisNormal = normals.get(i);
+            Vector3D thisNormal = thisTriangle.normal;
             thisNormal.setX(thisNormal.getX() * -1);
             thisNormal.setY(thisNormal.getY() * -1);
             thisNormal.setZ(thisNormal.getZ() * -1);
@@ -393,15 +385,11 @@ public class Main extends PApplet {
             dp += 1;
             int correctedDP = (int) ((dp * 255));
             int rightColor = (255 - (correctedDP / 2));
-            Triangle newTriangle = new Triangle(thisTriangle.getP1(), thisTriangle.getP2(), thisTriangle.getP3());
-            newTriangle.setColor(rightColor);
-            coloredTriangles.add(newTriangle);
+            thisTriangle.setColor(rightColor);
         }
-        return coloredTriangles;
     }
 
-    private ArrayList<Triangle> makeProjectionVectors(ArrayList<Triangle> triangles) {
-        ArrayList<Triangle> projectedTriangles = new ArrayList<>();
+    private void makeProjectionVectors(ArrayList<Triangle> triangles) {
         for (Triangle t : triangles) {
             Vector3D p1 = new Vector3D();
             Vector3D p2 = new Vector3D();
@@ -420,11 +408,10 @@ public class Main extends PApplet {
                 }
                 count++;
             }
-            Triangle tNew = new Triangle(p1, p2, p3);
-            tNew.setColor(t.getColor());
-            projectedTriangles.add(tNew);
+            t.setP1(p1);
+            t.setP2(p2);
+            t.setP3(p3);
         }
-        return projectedTriangles;
     }
 
     private void drawTriangles(ArrayList<Triangle> trianglesToDraw) {
@@ -449,6 +436,109 @@ public class Main extends PApplet {
                 line(t.getP3().getX(), t.getP3().getY(), t.getP2().getX(), t.getP2().getY());
             }
         }
+    }
+
+    private void drawTriangles2(ArrayList<Triangle> trianglesToDraw) {
+//        Vector3D origin = new Vector3D((float) yTranslate, (float) xTranslate, -1000);
+        Vector3D origin = new Vector3D(0, 0, -1000);
+        for (int i = 1; i < trianglesToDraw.size(); i++) {
+            Triangle current = trianglesToDraw.get(i);
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < i; k++) {
+                    switch (j) {
+                        case 0:
+//                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP1())));
+                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP1(), origin))))) {
+                                break;
+                            }
+                        case 1:
+//                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP2())));
+                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP2(), origin))))) {
+                                break;
+                            }
+                        case 2:
+//                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP3())));
+                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP3(), origin))))) {
+                                break;
+                            }
+                        default:
+                            trianglesToDraw.remove(current);
+                            i--;
+                            j = 3;
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    private static final double EPSILON = 0.0000001;
+
+    private boolean hit(Triangle t, Ray r) {
+        Vector3D vertex0 = t.getP1();
+        Vector3D vertex1 = t.getP2();
+        Vector3D vertex2 = t.getP3();
+        Vector3D edge1;
+        Vector3D edge2;
+        Vector3D h;
+        Vector3D s;
+        Vector3D q;
+        double a, f, u, v;
+        edge1 = vm.sub(vertex1, vertex0);
+        edge2 = vm.sub(vertex2, vertex0);
+        h = vm.crossProduct(r.getDirection(), edge2);
+        a = vm.dotProduct(edge1, h);
+        if (a > -EPSILON && a < EPSILON) {
+            return false;    // This ray is parallel to this triangle.
+        }
+        f = 1.0 / a;
+        s = vm.sub(r.getOrigin(), vertex0);
+        u = f * (vm.dotProduct(s, h));
+        if (u < 0.0 || u > 1.0) {
+            return false;
+        }
+        q = vm.crossProduct(s, edge1);
+        v = f * vm.dotProduct(r.getDirection(), q);
+        if (v < 0.0 || u + v > 1.0) {
+            return false;
+        }
+        // At this stage we can compute t to find out where the intersection point is on the line.
+        double d = f * vm.dotProduct(edge2, q);
+        if (d > EPSILON) {
+            System.out.println("true");
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean hit1(Triangle tri, Ray r) {
+        double angle = vm.dotProduct(tri.normal, r.getDirection());
+        if (Math.abs(angle) < EPSILON) return false;
+
+        double d = vm.dotProduct(tri.normal, tri.getP1());
+        double t = (-vm.dotProduct(tri.normal, r.getOrigin()) + d) / angle;
+        if (t < 0) return false;
+
+        Vector3D intersection = vm.add(r.getOrigin(), vm.multiply(r.getDirection(), (float) t));
+        Vector3D perpendicular;
+        Vector3D edge;
+        Vector3D distIntersection;
+
+        edge = vm.sub(tri.getP2(), tri.getP1());
+        distIntersection = vm.sub(intersection, tri.getP1());
+        perpendicular = vm.crossProduct(edge, distIntersection);
+        if (vm.dotProduct(tri.normal, perpendicular) < 0) return false;
+
+        edge = vm.sub(tri.getP3(), tri.getP2());
+        distIntersection = vm.sub(intersection, tri.getP2());
+        perpendicular = vm.crossProduct(edge, distIntersection);
+        if (vm.dotProduct(tri.normal, perpendicular) < 0) return false;
+
+        edge = vm.sub(tri.getP1(), tri.getP3());
+        distIntersection = vm.sub(intersection, tri.getP3());
+        perpendicular = vm.crossProduct(edge, distIntersection);
+        return !(vm.dotProduct(tri.normal, perpendicular) < 0);
     }
 
     private void drawAxisVisualization() {
@@ -539,7 +629,7 @@ public class Main extends PApplet {
             if (response == JOptionPane.YES_OPTION) {
                 JFrame jf = new JFrame();
                 jf.setAlwaysOnTop(true);
-                String[] choices = {"sphere", "fox", "cube", "teapot", "gun", "jeep"};
+                String[] choices = {"sphere", "fox", "cube", "teapot", "gun", "jeep", "ducc", "deer"};
                 try {
                     this.obj = (String) JOptionPane.showInputDialog(jf, "Choose:",
                             "Choose Preloaded Model", JOptionPane.QUESTION_MESSAGE, null, // Use

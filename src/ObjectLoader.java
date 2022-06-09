@@ -16,8 +16,10 @@ import java.util.Scanner;
 
 public class ObjectLoader {
 
+    boolean quads = false;
     public ArrayList<Vector3D> points = new ArrayList<>();
     public ArrayList<Triangle> triangles = new ArrayList<>();
+    public ArrayList<Quad> quadList = new ArrayList<>();
     public int scaleFactor = 1;
 
     //ADD NEW FILE HERE, FOLLOW THE PATTERN
@@ -57,6 +59,14 @@ public class ObjectLoader {
                 myObj = new File(newString + "\\jeep.obj");
                 scaleFactor = 150;
                 break;
+            case "deer":
+                myObj = new File(newString + "\\deer.obj");
+                scaleFactor = 300;
+                break;
+            case "ducc":
+                myObj = new File(newString + "\\duck.obj");
+                scaleFactor = 25;
+                break;
             case "other":
                 shouldTry = false;
                 break;
@@ -71,7 +81,7 @@ public class ObjectLoader {
     public ObjectLoader(File file1) {
         File myObj;
         myObj = new File(file1.getAbsolutePath());
-        scaleFactor = 300;
+        scaleFactor = 150;
         tryLoad(myObj);
     }
 
@@ -84,11 +94,27 @@ public class ObjectLoader {
                 if (splitData[0].equals("v")) {
                     points.add(new Vector3D((Float.parseFloat(splitData[1]) * scaleFactor), (Float.parseFloat(splitData[2]) * scaleFactor), (Float.parseFloat(splitData[3]) * scaleFactor)));
                 }
-                if (splitData[0].equals("f")) {
-                    String[] newOne = splitData[1].split("/");
-                    String[] newTwo = splitData[2].split("/");
-                    String[] newThree = splitData[3].split("/");
-                    triangles.add(new Triangle(points.get(Integer.parseInt(newOne[0]) - 1), points.get(Integer.parseInt(newTwo[0]) - 1), points.get(Integer.parseInt(newThree[0]) - 1)));
+                if (splitData.length == 4) {
+                    quads = false;
+                    if (splitData[0].equals("f")) {
+                        String[] newOne = splitData[1].split("/");
+                        String[] newTwo = splitData[2].split("/");
+                        String[] newThree = splitData[3].split("/");
+                        triangles.add(new Triangle(points.get(Integer.parseInt(newOne[0]) - 1), points.get(Integer.parseInt(newTwo[0]) - 1), points.get(Integer.parseInt(newThree[0]) - 1)));
+                    }
+                } else if (splitData.length == 5){
+                    quads = true;
+                    if (splitData[0].equals("f")) {
+                        String[] newOne = splitData[1].split("/");
+                        String[] newTwo = splitData[2].split("/");
+                        String[] newThree = splitData[3].split("/");
+                        String[] newFour = splitData[4].split("/");
+                        Quad quad = new Quad(points.get(Integer.parseInt(newOne[0]) - 1), points.get(Integer.parseInt(newTwo[0]) - 1), points.get(Integer.parseInt(newThree[0]) - 1), points.get(Integer.parseInt(newFour[0]) - 1));
+                        quadList.add(quad);
+                        quad.createTriangles();
+                        triangles.add(quad.getT1());
+                        triangles.add(quad.getT2());
+                    }
                 }
             }
             myReader.close();

@@ -8,22 +8,34 @@
 
 import java.util.ArrayList;
 
-public class Triangle implements Comparable<Triangle>, Primitive {
+public class Quad implements Comparable<Quad>, Primitive {
     private Vector3D p1;
     private Vector3D p2;
     private Vector3D p3;
+    private Vector3D p4;
+    private Triangle t1;
+    private Triangle t2;
     public Vector3D normal;
     private int color = 255;
 
     public ArrayList<Vector3D> trianglePoints = new ArrayList<>();
 
-    public Triangle(Vector3D p1, Vector3D p2, Vector3D p3) {
+    public Quad(Vector3D p1, Vector3D p2, Vector3D p3, Vector3D p4) {
         this.p1 = p1;
         this.p2 = p2;
         this.p3 = p3;
+        this.p4 = p4;
         trianglePoints.add(p1);
         trianglePoints.add(p2);
         trianglePoints.add(p3);
+        trianglePoints.add(p4);
+    }
+
+    public void createTriangles(){
+        Triangle first = new Triangle(p1, p2, p3);
+        Triangle second = new Triangle(p1, p3, p4);
+        this.t1 = first;
+        this.t2 = second;
     }
 
     public Vector3D getP1() {
@@ -50,6 +62,30 @@ public class Triangle implements Comparable<Triangle>, Primitive {
         this.p3 = p3;
     }
 
+    public Vector3D getP4() {
+        return p4;
+    }
+
+    public void setP4(Vector3D p4) {
+        this.p4 = p4;
+    }
+
+    public Triangle getT1() {
+        return t1;
+    }
+
+    public void setT1(Triangle t1) {
+        this.t1 = t1;
+    }
+
+    public Triangle getT2() {
+        return t2;
+    }
+
+    public void setT2(Triangle t2) {
+        this.t2 = t2;
+    }
+
     public int getColor() {
         return color;
     }
@@ -58,34 +94,8 @@ public class Triangle implements Comparable<Triangle>, Primitive {
         this.color = color;
     }
 
-    public float getLine1(String direction) {
-        switch (direction) {
-            case "x":
-                return this.p2.getX() - this.p1.getX();
-            case "y":
-                return this.p2.getY() - this.p1.getY();
-            case "z":
-                return this.p2.getZ() - this.p1.getZ();
-            default:
-                return -1;
-        }
-    }
-
-    public float getLine2(String direction) {
-        switch (direction) {
-            case "x":
-                return this.p3.getX() - this.p1.getX();
-            case "y":
-                return this.p3.getY() - this.p1.getY();
-            case "z":
-                return this.p3.getZ() - this.p1.getZ();
-            default:
-                return -1;
-        }
-    }
-
     @Override
-    public int compareTo(Triangle o) {
+    public int compareTo(Quad o) {
         float z1 = (this.p1.getZ() + this.p2.getZ() + this.p3.getZ()) / (3.0f);
         float z2 = (o.p1.getZ() + o.p2.getZ() + o.p3.getZ()) / (3.0f);
         return Float.compare(z2, z1);
