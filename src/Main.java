@@ -47,6 +47,7 @@ public class Main extends PApplet {
     boolean yRotate = false;
     boolean zRotate = false;
     boolean showUI = true;
+    boolean surfaceNormal = false;
 
     float fovMultiplier;
     float ZMultiplier;
@@ -176,7 +177,6 @@ public class Main extends PApplet {
 
             //CALCULATE WHICH TRIANGLES ARE VISIBLE WITH BACKFACE CULLING
             try {
-//
                 calculateVisible(triangles);
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
@@ -421,6 +421,9 @@ public class Main extends PApplet {
                 //SHADED TRIANGLES
                 stroke(t.getColor(), 0);
                 fill(t.getColor());
+                if (surfaceNormal){
+                    fill(t.normal.getX() * 255, t.normal.getY() * 255, t.normal.getZ() * 255);
+                }
                 triangle(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY(), t.getP3().getX(), t.getP3().getY());
                 strokeWeight(1);
             }
@@ -599,6 +602,8 @@ public class Main extends PApplet {
             PApplet.runSketch(args, sa);
         } else if (key == 'm') {
             this.model = !model;
+        } else if (key == '1') {
+            this.surfaceNormal = !surfaceNormal;
         } else if (key == 'g') {
             this.freeRotate = !freeRotate;
         } else if (key == 'q') {
