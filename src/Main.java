@@ -11,6 +11,7 @@ import processing.core.PApplet;
 import processing.core.PConstants;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
+import processing.opengl.PJOGL;
 
 import javax.swing.*;
 
@@ -81,6 +82,7 @@ public class Main extends PApplet {
     public void settings() {
         size(xSize, ySize, PConstants.P2D);
         try {
+            initObject(obj);
             loadProjectionMatrix();
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -106,11 +108,15 @@ public class Main extends PApplet {
             n -= 1;
         }
 
+        frameRate(1000);
+        PJOGL pgl = (PJOGL)beginPGL();
+        pgl.gl.setSwapInterval(1);
+        endPGL();
+
         originX = (int) (((width)) / 2.0);
         originY = (int) (((19 * (height))) / 32.0);
         surface.setTitle("3D Renderer");
         surface.setLocation(this.displayWidth / 2, this.displayHeight / 10);
-        frameRate(60);
         cam1 = new Vector3D(0, 0, -1000000);
     }
 
@@ -122,9 +128,6 @@ public class Main extends PApplet {
         aspectRatio = height / (float) (width);
         fovMultiplier = (float) (1 / (Math.tan((FOV * (3.14159f / 180.0f)) / 2)));
         ZMultiplier = (zFar / (zFar - zNear));
-        if (!(obj.equals("other"))) {
-            initObject(obj);
-        }
         projectionMatrix = m.initProjectionMatrix(aspectRatio, fovMultiplier, ZMultiplier, zNear);
     }
 
@@ -153,6 +156,12 @@ public class Main extends PApplet {
     }
 
     public void draw() {
+        double now = System.nanoTime();
+        double rate = 1000000.0 / ((now - frameRateLastNanos) / 1000000.0);
+        float instantaneousRate = (float) (rate / 1000.0);
+        frameRate = (frameRate * 0.9f) + (instantaneousRate * 0.1f);
+
+        System.out.print("\rFramerate: " + frameRate);
         background(0);
         ArrayList<Triangle> triangles;
 
@@ -162,6 +171,7 @@ public class Main extends PApplet {
 
         translate((float) ((int) (((width)) / 2.0) + xTranslate), (float) ((int) ((((19 * (height))) / 32.0)) + yTranslate));
 
+
         //DISPLAY PIPELINE
         if (frame != 0) {
             //ROTATE TRIANGLES
@@ -170,6 +180,7 @@ public class Main extends PApplet {
 
             //TRANSLATE THROUGH TRANSLATE MATRIX
             translateTriangles(triangles);
+//            cam1 = new Vector3D((float) ((int) (((width)) / 2.0) + xTranslate), (float) ((int) ((((19 * (height))) / 32.0)) + yTranslate), -1.0F);
 
             //CREATE ALL NORMALS
             for (Triangle t : triangles) {
@@ -183,7 +194,9 @@ public class Main extends PApplet {
             //CALCULATE WHICH TRIANGLES ARE VISIBLE WITH BACKFACE CULLING
             try {
                 calculateVisible(triangles);
-//                drawTriangles2(triangles);
+//                if (triangles.size() > 50000) {
+//                    drawTriangles2(triangles);
+//                }
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
@@ -418,7 +431,7 @@ public class Main extends PApplet {
                 //SHADED TRIANGLES
                 stroke(t.getColor(), 0);
                 fill(t.getColor());
-                if (surfaceNormal){
+                if (surfaceNormal) {
                     fill(t.normal.getX() * 255, t.normal.getY() * 255, t.normal.getZ() * 255);
                 }
                 triangle(t.getP1().getX(), t.getP1().getY(), t.getP2().getX(), t.getP2().getY(), t.getP3().getX(), t.getP3().getY());
@@ -441,7 +454,7 @@ public class Main extends PApplet {
     private void drawTriangles2(ArrayList<Triangle> trianglesToDraw) {
         for (int i = 1; i < trianglesToDraw.size(); i++) {
             Triangle current = trianglesToDraw.get(i);
-            for (int k = i-1; k >= 0; k--) {
+            for (int k = i - 1; k >= 0; k--) {
                 Triangle check = trianglesToDraw.get(k);
                 for (int j = 0; j <= 3; j++) {
 //                    Vector3D direction = vm.sub(cam1, current.getP1());
@@ -611,18 +624,7 @@ public class Main extends PApplet {
         } else if (key == 'g') {
             this.freeRotate = !freeRotate;
         } else if (key == 'q') {
-            xAngle = 0;
-            yAngle = 0;
-            zAngle = 0;
-            this.xTranslate = 0;
-            this.yTranslate = 0;
-            this.FOV = 270f;
-
-            try {
-                loadProjectionMatrix();
-            } catch (FileNotFoundException | UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            resetPosLoadProjMatrix();
         } else if (key == 'b') {
             this.bBox = !bBox;
         } else if (key == 'x') {
@@ -646,11 +648,9 @@ public class Main extends PApplet {
                             // icon
                             choices, // Array of choices
                             choices[1]);
-                    try {
-                        loadProjectionMatrix();
-                    } catch (FileNotFoundException | UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
+                    System.out.println("\n");
+                    initObject(obj);
+                    resetPosLoadProjMatrix();
                 } catch (NullPointerException e) {
                     System.out.println("Canceled!");
                 }
@@ -659,17 +659,29 @@ public class Main extends PApplet {
                 if (whichFile != null) {
                     try {
                         this.obj = "other";
+                        System.out.println("\n");
                         initObject(whichFile);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                    try {
-                        loadProjectionMatrix();
-                    } catch (FileNotFoundException | UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
+                    resetPosLoadProjMatrix();
                 }
             }
+        }
+    }
+
+    private void resetPosLoadProjMatrix() {
+        xAngle = 0;
+        yAngle = 0;
+        zAngle = 0;
+        this.xTranslate = 0;
+        this.yTranslate = 0;
+        this.FOV = 270f;
+
+        try {
+            loadProjectionMatrix();
+        } catch (FileNotFoundException | UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 
@@ -770,7 +782,7 @@ public class Main extends PApplet {
         int direction = event.getCount();
         if (direction < 0) {
             for (int i = 0; i > direction; i--) {
-                this.FOV += 5;
+                this.FOV += 5.0;
 
                 try {
                     loadProjectionMatrix();
@@ -780,7 +792,7 @@ public class Main extends PApplet {
             }
         } else if (direction > 0) {
             for (int i = direction; i >= 0; i--) {
-                this.FOV -= 5;
+                this.FOV -= 5.0;
 
                 try {
                     loadProjectionMatrix();

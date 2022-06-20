@@ -6,15 +6,21 @@
  * Questions, email me at: artk0090@gmail.com
  */
 
+import javax.swing.*;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 public class ObjectLoader {
+    long numLines;
 
     boolean quads = false;
     public ArrayList<Vector3D> points = new ArrayList<>();
@@ -86,13 +92,20 @@ public class ObjectLoader {
     }
 
     private void tryLoad(File myObj) {
+        long count = 0;
         try {
+            System.out.println("Loading File...." + "\n");
+            try (Stream<String> stream = Files.lines(Path.of(myObj.getAbsolutePath()), StandardCharsets.UTF_8)) {
+                numLines = stream.count();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
                 String[] splitData = data.split(" ");
                 if (splitData[0].equals("v")) {
-                    points.add(new Vector3D((Float.parseFloat(splitData[1]) * scaleFactor), (Float.parseFloat(splitData[2]) * scaleFactor), (Float.parseFloat(splitData[3]) * scaleFactor)));
+                    points.add(new Vector3D((Float.parseFloat(splitData[1])) * scaleFactor, (Float.parseFloat(splitData[2])) * scaleFactor, (Float.parseFloat(splitData[3]) * scaleFactor)));
                 }
                 if (splitData.length == 4) {
                     quads = false;
@@ -116,11 +129,18 @@ public class ObjectLoader {
                         triangles.add(quad.getT2());
                     }
                 }
+                updateProgressBar(count++);
             }
             myReader.close();
+            System.out.println("\n");
+            System.out.println("Scale Factor: " + scaleFactor + "\n");
         } catch (FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
+    }
+
+    public void updateProgressBar(long count) {
+        System.out.print("\r|| " + (((long) ((count / (double) numLines) * 100)) + 1) + "%");
     }
 }
