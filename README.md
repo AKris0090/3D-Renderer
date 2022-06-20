@@ -36,6 +36,11 @@
 
 # Updates
 
+## 6/19/2022
+#### - Press 1 for surface normals
+#### - Plan to implement small normals for each triangle
+#### - Will probably update occlusion culling with a more efficient algorithm, instead of bruteforcing
+
 ## 6/9/2022
 #### - added optimization, less creation of multiple arraylists. One arraylist of triangles, passed through all methods.
 #### - added 2 more preloaded models, duck and deer
