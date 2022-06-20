@@ -36,6 +36,12 @@
 
 # Updates
 
+## 6/20/2022
+#### - Added vsync embedded in PJOGL
+#### - Bug fixes: reloading the model on FOV changes (fixed)
+#### - Added a loading bar for larger files
+#### - More optimization incoming
+
 ## 6/19/2022
 #### - Press 1 for surface normals
 #### - Plan to implement small normals for each triangle
