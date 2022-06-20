@@ -8,6 +8,7 @@
 
 import com.jogamp.nativewindow.WindowClosingProtocol;
 import processing.core.PApplet;
+import processing.core.PConstants;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
 
@@ -78,7 +79,7 @@ public class Main extends PApplet {
     }
 
     public void settings() {
-        size(xSize, ySize, processing.core.PConstants.P2D);
+        size(xSize, ySize, PConstants.P2D);
         try {
             loadProjectionMatrix();
         } catch (FileNotFoundException | UnsupportedEncodingException e) {
@@ -175,19 +176,20 @@ public class Main extends PApplet {
                 t.normal = normal(t);
             }
 
+            //DRAW FROM FURTHEST TRIANGLE UP
+            triangles.sort(Collections.reverseOrder());
+//            Collections.sort(triangles);
+
             //CALCULATE WHICH TRIANGLES ARE VISIBLE WITH BACKFACE CULLING
             try {
                 calculateVisible(triangles);
+//                drawTriangles2(triangles);
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
             }
 
             //CALCULATE COLORS
             calculateColor(triangles);
-
-            //DRAW FROM FURTHEST TRIANGLE UP
-            triangles.sort(Collections.reverseOrder());
-//            Collections.sort(triangles);
 
             //PROJECTION
             makeProjectionVectors(triangles);
@@ -356,13 +358,8 @@ public class Main extends PApplet {
 
             Vector3D norm = t.normal;
 
-            float nx = norm.getX();
-            float ny = norm.getY();
-            float nz = norm.getZ();
-            Vector3D n = new Vector3D(nx, ny, nz);
-
             //DOT PRODUCT AND CAMERA POSITION CORRECTION
-            if (!(vm.dotProduct(n, cameraRay) < 0.0f)) {
+            if (!(vm.dotProduct(norm, cameraRay) < 0.0f)) {
                 rotatedTriangles.remove(t);
                 i--;
             }
@@ -442,33 +439,40 @@ public class Main extends PApplet {
     }
 
     private void drawTriangles2(ArrayList<Triangle> trianglesToDraw) {
-//        Vector3D origin = new Vector3D((float) yTranslate, (float) xTranslate, -1000);
-        Vector3D origin = new Vector3D(0, 0, -1000);
         for (int i = 1; i < trianglesToDraw.size(); i++) {
             Triangle current = trianglesToDraw.get(i);
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < i; k++) {
+            for (int k = i-1; k >= 0; k--) {
+                Triangle check = trianglesToDraw.get(k);
+                for (int j = 0; j <= 3; j++) {
+//                    Vector3D direction = vm.sub(cam1, current.getP1());
+//                    strokeWeight(0.5F);
+//                    stroke(0, 255 , 0);
+//                    line(cam1.getX(), cam1.getY(), cam1.getZ(), direction.getX(), direction.getY(), direction.getZ());
                     switch (j) {
                         case 0:
-//                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP1())));
-                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP1(), origin))))) {
+//                            System.out.println((!(hit1(check, new Ray(current.getP1(), origin)))));
+//                            if (!(hit1(check, new Ray(current.getP1(), vm.normalize(vm.sub(origin, current.getP1())))))) {
+                            if (!(hit1(check, new Ray(cam1, vm.normalize(vm.sub(cam1, current.getP1())))))) {
+                                j = 4;
                                 break;
                             }
                         case 1:
 //                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP2())));
-                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP2(), origin))))) {
+//                            if (!(hit1(check, new Ray(current.getP1(), vm.normalize(vm.sub(origin, current.getP2())))))) {
+                            if (!(hit1(check, new Ray(cam1, vm.normalize(vm.sub(cam1, current.getP2())))))) {
+                                j = 4;
                                 break;
                             }
                         case 2:
 //                            System.out.println(hit(trianglesToDraw.get(k), new Ray(origin, current.getP3())));
-                            if (!(hit1(trianglesToDraw.get(k), new Ray(cam1, vm.sub(current.getP3(), origin))))) {
+//                            if (!(hit1(check, new Ray(current.getP1(), vm.normalize(vm.sub(origin, current.getP3())))))) {
+                            if (!(hit1(check, new Ray(cam1, vm.normalize(vm.sub(cam1, current.getP3())))))) {
+                                j = 4;
                                 break;
                             }
                         default:
-                            trianglesToDraw.remove(current);
+                            trianglesToDraw.remove(i);
                             i--;
-                            j = 3;
-                            break;
                     }
                 }
             }
