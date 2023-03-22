@@ -9,7 +9,7 @@
 
 # 3D Renderer Project Description
 
-  This project is involves projection of 3D coordinates to 2D space, based off of a youtube guide by javidx9, implemented in Java using PApplet
+  This project is involves projection of 3D coordinates to 2D space, with math based off of a youtube guide by javidx9, implemented in Java using PApplet
 #### Link to his channel here: https://www.youtube.com/channel/UC-yuWVUplUJZvieEligKBkA
 
   Starting off, the coordinates in 3D space are imported from the .obj file, where the single vertices are marked with a "v" followed by a sequence of numbers representing their position in 3D space. This is called by the class ObjectLoader. The .obj files also gives the faces of an object, denoted by an "f" at the start of a line. The set of numbers following an "f" denotation mark indexes of the vertices that make up the face. By arranging the vertices into an ArrayList, we can easily get faces by calling the index stored within the List. Also, within the setup of the application, I also set the camera's position in the 3D world as the point the scene is viewed from.
