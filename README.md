@@ -1,3 +1,5 @@
+![]https://raw.githubusercontent.com/AKris0090/3D-Renderer/main/SS%20-%20DEER.png?raw=true
+
 # Quick Start Guide
 #### https://youtu.be/teK-erm_5Hg
 
